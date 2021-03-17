@@ -39,6 +39,7 @@ import net.mamoe.mirai.internal.network.protocol.packet.list.FriendList
 import net.mamoe.mirai.internal.network.protocol.packet.login.StatSvc
 import net.mamoe.mirai.internal.network.protocol.packet.sendAndExpect
 import net.mamoe.mirai.internal.network.protocol.packet.summarycard.SummaryCard
+import net.mamoe.mirai.internal.utils.broadcastWithBot
 import net.mamoe.mirai.internal.utils.crypto.TEA
 import net.mamoe.mirai.internal.utils.io.serialization.loadAs
 import net.mamoe.mirai.internal.utils.io.serialization.toByteArray
@@ -65,6 +66,7 @@ internal open class MiraiImpl : IMirai, LowLevelApiAccessor {
             MessageSerializers.registerSerializer(OnlineGroupImageImpl::class, OnlineGroupImageImpl.serializer())
 
             MessageSerializers.registerSerializer(MarketFaceImpl::class, MarketFaceImpl.serializer())
+            MessageSerializers.registerSerializer(FileMessageImpl::class, FileMessageImpl.serializer())
 
             // MessageSource
 
@@ -146,7 +148,7 @@ internal open class MiraiImpl : IMirai, LowLevelApiAccessor {
         )
 
         event.bot.getFriend(event.fromId)?.let { friend ->
-            FriendAddEvent(friend).broadcast()
+            FriendAddEvent(friend).broadcastWithBot(event.bot)
         }
     }
 
@@ -193,14 +195,6 @@ internal open class MiraiImpl : IMirai, LowLevelApiAccessor {
             accept = true,
             blackList = false
         )
-
-        event.group?.getMember(event.fromId)?.let { member ->
-            if (event.invitor != null) {
-                MemberJoinEvent.Invite(member, event.invitor!!).broadcast()
-            } else {
-                MemberJoinEvent.Active(member).broadcast()
-            }
-        }
     }
 
     @Suppress("DuplicatedCode")
@@ -847,20 +841,7 @@ internal open class MiraiImpl : IMirai, LowLevelApiAccessor {
                 message = message
             ).sendWithoutExpect()
         }
-
-        if (accept ?: return@run)
-            groups[groupId]?.run {
-                members.delegate.add(
-                    newMember(
-                        MemberInfoImpl(
-                            uin = fromId,
-                            nick = fromNick,
-                            permission = MemberPermission.MEMBER,
-                            "", "", "", 0, null
-                        )
-                    ).cast()
-                )
-            }
+        // Add member in MsgOnlinePush.PbPushMsg
     }
 
     @OptIn(ExperimentalStdlibApi::class)

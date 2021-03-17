@@ -31,6 +31,7 @@ import net.mamoe.mirai.internal.network.protocol.data.proto.MsgComm
 import net.mamoe.mirai.internal.network.protocol.data.proto.MsgOnlinePush
 import net.mamoe.mirai.internal.network.protocol.data.proto.Oidb0x8fc
 import net.mamoe.mirai.internal.network.protocol.packet.IncomingPacketFactory
+import net.mamoe.mirai.internal.utils.broadcastWithBot
 import net.mamoe.mirai.internal.utils.io.serialization.loadAs
 import net.mamoe.mirai.internal.utils.io.serialization.readProtoBuf
 import net.mamoe.mirai.message.data.MessageSourceKind.GROUP
@@ -67,7 +68,9 @@ internal object OnlinePushPbPushGroupMsg : IncomingPacketFactory<Packet?>("Onlin
             val messageRandom = pbPushMsg.msg.msgBody.richText.attr?.random ?: return null
 
             if (bot.client.syncingController.pendingGroupMessageReceiptCacheList.contains { it.messageRandom == messageRandom }
-                || msgHead.fromAppid == 3116) {
+                || msgHead.fromAppid == 3116 || msgHead.fromAppid == 2021) {
+                // 3116=group music share
+                // 2021=group file
                 // message sent by bot
                 return SendGroupMessageReceipt(
                     messageRandom,
@@ -103,7 +106,7 @@ internal object OnlinePushPbPushGroupMsg : IncomingPacketFactory<Packet?>("Onlin
         val name: String
 
         if (anonymous != null) { // anonymous member
-            sender = group.newAnonymous(anonymous.anonNick.encodeToString(), anonymous.anonId.encodeToBase64())
+            sender = group.newAnonymous(anonymous.anonNick.encodeToString(), anonymous.anonId.encodeBase64())
             name = sender.nameCard
         } else { // normal member chat
             sender = group[msgHead.fromUin] as NormalMemberImpl? ?: kotlin.run {
@@ -143,7 +146,7 @@ internal object OnlinePushPbPushGroupMsg : IncomingPacketFactory<Packet?>("Onlin
         val currentNameCard = sender.nameCard
         if (sender is NormalMemberImpl && name != currentNameCard) {
             sender._nameCard = name
-            MemberCardChangeEvent(currentNameCard, name, sender).broadcast()
+            MemberCardChangeEvent(currentNameCard, name, sender).broadcastWithBot(sender.bot)
         }
     }
 
