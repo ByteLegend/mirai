@@ -697,7 +697,7 @@ public class ForwardMessageBuilder private constructor(
     @JvmOverloads
     public fun add(senderId: Long, senderName: String, message: Message, time: Int = -1): ForwardMessageBuilder {
         return if (time == -1) senderId named senderName says message
-        else senderId named senderName says message
+        else senderId named senderName at time says message
     }
 
     /**
