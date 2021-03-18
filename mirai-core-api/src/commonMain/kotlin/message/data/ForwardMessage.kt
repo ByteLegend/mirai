@@ -562,7 +562,10 @@ public class ForwardMessageBuilder private constructor(
     @ForwardMessageDsl
     public infix fun User.says(message: Message): ForwardMessageBuilder = this.id named this.nameCardOrNick says message
 
-    /** 添加一条消息, 自动按顺序调整时间 */
+    /**
+     * 添加一条消息, 自动按顺序调整时间
+     * @since 2.6
+     */
     @ForwardMessageDsl
     public infix fun UserOrBot.says(message: Message): ForwardMessageBuilder =
         this.id named this.nameCardOrNick says message
@@ -641,7 +644,10 @@ public class ForwardMessageBuilder private constructor(
     @ForwardMessageDsl
     public infix fun User.named(name: String): BuilderNode = this.id.named(name)
 
-    /** 为一条消息指定发送人名称. */
+    /**
+     * 为一条消息指定发送人名称.
+     * @since 2.6
+     */
     @ForwardMessageDsl
     public infix fun UserOrBot.named(name: String): BuilderNode = this.id.named(name)
 
